@@ -16,11 +16,14 @@ type CityPopulationResponce struct {
 	Error bool `json:"error"`
 }
 
+var ErrorNoCity = errors.New("NOT_CITY")
+var ErrorNot200 = errors.New("NOT200")
+
 func GetMyLocation(city string) (*GeoData, error) {
 	if city != "" {
 		isCity := checkCity(city)
 		if !isCity {
-			panic("Такого города нет")
+			return nil, ErrorNoCity
 		}
 		return &GeoData{
 			City: city,
@@ -31,15 +34,15 @@ func GetMyLocation(city string) (*GeoData, error) {
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
-		return nil, errors.New("NOT200")
+		return nil, ErrorNot200
 	}
 	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body) 
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
-	var geo GeoData 
-	json.Unmarshal(body,&geo)
+	var geo GeoData
+	json.Unmarshal(body, &geo)
 	return &geo, nil
 }
 
@@ -52,11 +55,11 @@ func checkCity(city string) bool {
 		return false
 	}
 	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body) 
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return false
 	}
-	var populationResponce CityPopulationResponce 
-	json.Unmarshal(body,&populationResponce)
+	var populationResponce CityPopulationResponce
+	json.Unmarshal(body, &populationResponce)
 	return !populationResponce.Error
 }
